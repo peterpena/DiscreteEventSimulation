@@ -23,7 +23,7 @@ int main()
     int NumberOfServers = 100;
     int numberOfHops[NumberOfServers];
     int NJobsServed[NumberOfServers];
-    int NJobsArrived = 10000000;
+    int NJobsArrived = 1000000;
     int numPrintServers = 2;
     double perServerLoad = 4;
     double load = NumberOfServers * perServerLoad;

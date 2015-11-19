@@ -14,3 +14,19 @@
 1445377649 source:c:\users\pedro\desktop\smart cities research\discreteeventsimulation\des\server.cpp
 	"server.h"
 
+1445374049 source:c:\users\pedro\desktop\smart systems research\discreteeventsimulation\des_v3\server.cpp
+	"server.h"
+
+1446053403 c:\users\pedro\desktop\smart systems research\discreteeventsimulation\des_v3\server.h
+	<vector>
+
+1447959910 source:c:\users\pedro\desktop\smart systems research\discreteeventsimulation\des_v3\main.cpp
+	<iostream>
+	<queue>
+	"job.h"
+	"server.h"
+	<random>
+	<string>
+
+1446151087 c:\users\pedro\desktop\smart systems research\discreteeventsimulation\des_v3\job.h
+
