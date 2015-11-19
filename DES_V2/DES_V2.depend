@@ -1,0 +1,33 @@
+# depslib dependency file v1.0
+1445374049 source:c:\users\pedro\desktop\smart cities research\discreteeventsimulation\des_v2\server.cpp
+	"server.h"
+
+1446053403 c:\users\pedro\desktop\smart cities research\discreteeventsimulation\des_v2\server.h
+	<vector>
+
+1446766612 source:c:\users\pedro\desktop\smart cities research\discreteeventsimulation\des_v2\main.cpp
+	<iostream>
+	<queue>
+	"job.h"
+	"server.h"
+	<random>
+	<string>
+
+1446760054 c:\users\pedro\desktop\smart cities research\discreteeventsimulation\des_v2\job.h
+
+1447362327 source:c:\users\pedro\desktop\smart systems research\discreteeventsimulation\des_v2\main.cpp
+	<iostream>
+	<queue>
+	"job.h"
+	"server.h"
+	<random>
+	<string>
+
+1446760054 c:\users\pedro\desktop\smart systems research\discreteeventsimulation\des_v2\job.h
+
+1447360235 c:\users\pedro\desktop\smart systems research\discreteeventsimulation\des_v2\server.h
+	<vector>
+
+1445374049 source:c:\users\pedro\desktop\smart systems research\discreteeventsimulation\des_v2\server.cpp
+	"server.h"
+
