@@ -37,3 +37,13 @@
 1447360235 c:\users\pedro\desktop\smart systems research\discreteeventsimulation\des_v4\server.h
 	<vector>
 
+1447962611 source:c:\users\pedro\desktop\smart systems research\discreteeventsimulation\des_v4\main.cpp
+	<iostream>
+	<queue>
+	"job.h"
+	"server.h"
+	<random>
+	<string>
+
+1447960751 c:\users\pedro\desktop\smart systems research\discreteeventsimulation\des_v4\job.h
+

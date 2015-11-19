@@ -27,7 +27,7 @@ int main()
     int NumberOfServers = 100;
     int numberOfHops[NumberOfServers];
     int NJobsServed[NumberOfServers];
-    int NJobsArrived = 100000;
+    int NJobsArrived = 10000000;
     int NWarmUpJobs = 100000;
     int numPrintServers = 2;
     double perServerLoad = 4;
@@ -78,7 +78,7 @@ int main()
 
 
     //Fill Initial Queue
-    for(i = 0; i< NJobsArrived; i++)
+    for(i = 0; i< NJobsArrived-1; i++)
     {
         double pastTime = clock;
         double arrivalTime = lamdaDistribution(generator) + clock;
@@ -170,11 +170,15 @@ int main()
         }
     }
     */
-
+    int numJobs = 0;
     while(!JobQueue.empty())
     {
+
         Job CurrentJob = JobQueue.top();
         JobQueue.pop();
+
+       // if(numJobs++ < 20 && CurrentJob.status != DEPARTURE)
+            //cout<<"Current Server: "<<currentServer<<endl;
 
         switch(CurrentJob.status)
         {
@@ -204,7 +208,7 @@ int main()
                 Servers[currentServer].JobCount[Servers[currentServer].NumCurrentJobs]++;
                 Servers[currentServer].TotalArrivingJobsDenied++;
 
-                currentServer = (Servers[currentServer].ServerID + 1) % NumberOfServers;
+                currentServer = (currentServer + 1) % NumberOfServers;
 
             }
             else
@@ -216,9 +220,9 @@ int main()
                 CurrentJob.ServiceTime = serverTime;
                 JobQueue.push(CurrentJob);
                 Servers[currentServer].NumCurrentJobs++;
-                currentServer = (Servers[currentServer].ServerID + 1) % NumberOfServers;
                 numberOfHops[0]++;
                 Servers[currentServer].JobCount[(Servers[currentServer].NumCurrentJobs)]++;
+                currentServer = (currentServer+1) % NumberOfServers;
             }
             break;
 
@@ -241,7 +245,7 @@ int main()
                         JobQueue.push(CurrentJob);
 
 
-                        currentServer = (Servers[currentServer].ServerID + 1) % NumberOfServers;
+                        currentServer = (currentServer + 1) % NumberOfServers;
                     }
                     else if(Servers[currentServer].NumCurrentJobs < Servers[currentServer].Capacity)
                     {
@@ -253,9 +257,9 @@ int main()
                         CurrentJob.ServiceTime = serverTime;
                         JobQueue.push(CurrentJob);
                         Servers[currentServer].NumCurrentJobs++;
-                        currentServer = (Servers[currentServer].ServerID + 1) % NumberOfServers;
                         numberOfHops[CurrentJob.numberOfServersVisited]++;
                         Servers[currentServer].JobCount[(Servers[currentServer].NumCurrentJobs)]++;
+                        currentServer = (currentServer + 1) % NumberOfServers;
                     }
                 }
             break;
@@ -265,7 +269,6 @@ int main()
             break;
         }
     }
-
     for(i = 0; i <NumberOfServers; i++)
     {
         totalJobsServed+= Servers[i].TotalJobsServed;
