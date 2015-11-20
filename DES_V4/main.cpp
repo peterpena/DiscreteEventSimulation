@@ -27,10 +27,10 @@ int main()
     int NumberOfServers = 100;
     int numberOfHops[NumberOfServers];
     int NJobsServed[NumberOfServers];
-    int NJobsArrived = 10000000;
+    int NJobsArrived = 5000000;
     int NWarmUpJobs = 100000;
     int numPrintServers = 2;
-    double perServerLoad = 4;
+    double perServerLoad = 1.5;
     double load = NumberOfServers * perServerLoad;
     double simRatio = 0.001;
     double Lambda = simRatio*load;
@@ -170,15 +170,12 @@ int main()
         }
     }
     */
-    int numJobs = 0;
+
     while(!JobQueue.empty())
     {
 
         Job CurrentJob = JobQueue.top();
         JobQueue.pop();
-
-       // if(numJobs++ < 20 && CurrentJob.status != DEPARTURE)
-            //cout<<"Current Server: "<<currentServer<<endl;
 
         switch(CurrentJob.status)
         {
@@ -250,7 +247,6 @@ int main()
                     else if(Servers[currentServer].NumCurrentJobs < Servers[currentServer].Capacity)
                     {
                         CurrentJob.status = DEPARTURE;
-
                         CurrentJob.AssignedServerID = Servers[currentServer].ServerID;
                         serverTime = muDistribution(generator);
                         CurrentJob.PriorityTime += serverTime;
@@ -281,6 +277,7 @@ int main()
     cout<<"Inter Arrival Time:      "<<(arrivalClock/NJobsArrived)<<endl;
     // cout<<"Service Ratio:           "<<serviceClock/simulatedClock<<endl;
     cout<<"Number of Jobs Arrived:  "<<NJobsArrived<<endl;
+    cout<<"Total Number of Jobs Served: "<<totalJobsServed<<endl;
 
 
 
@@ -324,6 +321,7 @@ int main()
     //cout<<"Servers that surpassed avg: "<<(double)serversGreaterThanAvg/NumberOfServers<<endl;
     // cout<<"Total arriving jobs from all servers: " << totalArrivingJobs<<endl;
 
+    double totalExpected = 0;
     int sumOfTotalJobs = 0;
     for(i = 0; i < NumberOfServers; i++)
     {
@@ -356,8 +354,9 @@ int main()
 
             cout<<"Expected Number of Jobs "<<expectedValue<<endl;
         }
-
+    totalExpected+=expectedValue;
     }
+    cout<<"The Average Expected Value: "<<totalExpected/NumberOfServers<<endl;
     cout<<"\n\nThe sum of all jobs.: "<<sumOfTotalJobs<<endl;
     totalStateFive = 0;
     for(i = 0; i < 1; i++)
