@@ -1,19 +1,24 @@
+//Version 2
 #include <iostream>
 #include <queue>
 #include "job.h"
 #include "server.h"
 #include <random>
 #include <string>
+#include <fstream>
 #define NEWJOB -1
+#define OLDJOB -2
+#define DEPARTURE -3
+
 using namespace std;
 
 class TimeComparison
 {
 public:
-  bool operator() (const Job&lhs, const Job &rhs) const
-  {
-    return (lhs.PriorityTime>rhs.PriorityTime);
-  }
+    bool operator() (const Job&lhs, const Job &rhs) const
+    {
+        return (lhs.PriorityTime>rhs.PriorityTime);
+    }
 };
 
 int main()
@@ -24,11 +29,12 @@ int main()
     int numberOfHops[NumberOfServers];
     int NJobsServed[NumberOfServers];
     int NJobsArrived = 1000000;
+    int NWarmUpJobs = 100000;
     int numPrintServers = 2;
-    double perServerLoad = 4;
+    double perServerLoad = 2;
     double load = NumberOfServers * perServerLoad;
     double simRatio = 0.001;
-    double Lambda = simRatio*load;
+    double Lambda = simRatio * load;
     double Mu = simRatio;
     int MaxServerCapacity = 5;
     Server Servers[NumberOfServers];
@@ -39,19 +45,31 @@ int main()
     double arrivalClock = 0;
     double serviceClock = 0;
     double serverTime = 0;
-    int lastServer = 0;
+    int currentServer = 0;
+    int warmUpJobsCounter = 0;
+    bool startStatistics = false;
     bool FoundServer = false;
+    int numVisitedServers = 0;
     int totalArrivingJobs = 0;
+    int ServiceBins[20];
+    int ArrivalBins[20];
+
+    for(i = 0; i < 20; i++)
+    {
+        ServiceBins[i] = 0;
+        ArrivalBins[i] = 0;
+    }
 
     for(i = 0; i < NumberOfServers; i++)
     {
         Servers[i].ServerID = i;
         Servers[i].Capacity = MaxServerCapacity;
+        //Servers[i].NumCurrentJobs = perServerLoad;
         Servers[i].initializeJobCount(Servers[i].Capacity + 1);
         numberOfHops[i] = 0;
     }
 
-    default_random_engine generator(0);
+    default_random_engine generator(100);
     exponential_distribution<double> lamdaDistribution(Lambda);
     exponential_distribution<double> muDistribution(Mu);
 
@@ -59,11 +77,13 @@ int main()
     cout<<"Server Capacity: "<<MaxServerCapacity<<endl;
     cout<<"Mu: "<<Mu<<endl;
     cout<<"Lambda: "<<Lambda<<endl;
+    cout<<"Lambda : Mu Ratio : "<<Lambda/Mu<<endl;
 
     //intial job
     clock = 0;
-     Job NewJob(NEWJOB, clock, 0);
-     NewJob.JobID = 0;
+    Job NewJob(NEWJOB, clock, 0);
+    NewJob.JobID = 0;
+    NewJob.status = NEWJOB;
     JobQueue.push(NewJob);
 
 
@@ -75,191 +95,185 @@ int main()
         clock = arrivalTime;
         Job NewJob(NEWJOB, arrivalTime, i + 1);
         NewJob.JobID = i+1;
+        NewJob.status = NEWJOB;
         NewJob.ArrivalTime = arrivalTime - pastTime;
 
         JobQueue.push(NewJob);
     }
-    i = 0;
+    int numberOfJobs = 0, lastServer = currentServer, lastSuccessful = 0, currentSuccessful = 0;
     while(!JobQueue.empty())
     {
+        if((lastSuccessful - currentSuccessful) > 1 || (lastSuccessful - currentSuccessful) < -1)
+        {
+            numberOfJobs++;
+            cout<<"Current Server: "<<currentSuccessful<<" Last Server: "<<lastSuccessful<<endl;
+        }
         Job CurrentJob = JobQueue.top();
         JobQueue.pop();
-        //string eventType = (CurrentJob.AssignedServerID == NEWJOB) ? " Arrival" : " Departure";
-        //cout<<"Job "<<CurrentJob.JobID<<": "<<CurrentJob.PriorityTime<<eventType<<endl;
 
-       if(CurrentJob.AssignedServerID == NEWJOB)
-       {
-           simulatedClock += CurrentJob.ArrivalTime;
-           arrivalClock += CurrentJob.ArrivalTime;
-           FoundServer = false;
-           int loopCount = 0;
-           int currentServer = (lastServer + 1) % NumberOfServers;
-           Servers[currentServer].TotalArrivingJobs++;
+        switch(CurrentJob.status)
+        {
 
-            if(Servers[currentServer].NumCurrentJobs < Servers[currentServer].Capacity)
+        case DEPARTURE:
+            simulatedClock += CurrentJob.ServiceTime;
+            serviceClock+= CurrentJob.ServiceTime;
+            Servers[CurrentJob.AssignedServerID].NumCurrentJobs--;
+
+            Servers[CurrentJob.AssignedServerID].TotalJobsServed++;
+            Servers[CurrentJob.AssignedServerID].JobCount[Servers[CurrentJob.AssignedServerID].NumCurrentJobs]++;
+
+            if(Servers[CurrentJob.AssignedServerID].NumCurrentJobs < 0)
             {
-                numberOfHops[0]++;
+                cout<<"ERROR: Negative Job Count..."<<endl;
+            }
+            break;
+
+        case NEWJOB:
+                arrivalClock += CurrentJob.ArrivalTime;
+                Servers[currentServer].TotalArrivingJobs++;
+
+            if(Servers[currentServer].NumCurrentJobs == Servers[currentServer].Capacity)
+            {
+                CurrentJob.status = OLDJOB;
+                JobQueue.push(CurrentJob);
+                Servers[currentServer].JobCount[Servers[currentServer].NumCurrentJobs]++;
+                Servers[currentServer].TotalArrivingJobsDenied++;
+                lastServer = currentServer;
+                currentServer = (currentServer + 1) % NumberOfServers;
+                while(Servers[currentServer].NumCurrentJobs == Servers[currentServer].Capacity)
+                {
+                    currentServer = (currentServer + 1) % NumberOfServers;
+                }
+            }
+            else
+            {
+                CurrentJob.status = DEPARTURE;
                 CurrentJob.AssignedServerID = Servers[currentServer].ServerID;
                 serverTime = muDistribution(generator);
                 CurrentJob.PriorityTime += serverTime;
                 CurrentJob.ServiceTime = serverTime;
                 JobQueue.push(CurrentJob);
                 Servers[currentServer].NumCurrentJobs++;
+                numberOfHops[0]++;
                 Servers[currentServer].JobCount[(Servers[currentServer].NumCurrentJobs)]++;
-                lastServer = Servers[currentServer].ServerID;
+                Servers[currentServer].Jobs.push_back(CurrentJob);
+                lastServer = currentServer;
+                lastSuccessful = currentSuccessful;
+                currentSuccessful = currentServer;
+                currentServer = (currentServer+1) % NumberOfServers;
+                while(Servers[currentServer].NumCurrentJobs == Servers[currentServer].Capacity)
+                {
+                    currentServer = (currentServer + 1) % NumberOfServers;
+                }
             }
-            else if(Servers[currentServer].NumCurrentJobs >= Servers[currentServer].Capacity)
-            {
-                Servers[currentServer].JobCount[(Servers[currentServer].NumCurrentJobs)]++;
-            }
-            else
-            {
-              Servers[currentServer].TotalArrivingJobsDenied++;
-              while((!FoundServer) && (loopCount < NumberOfServers))
-              {
-                  currentServer = (currentServer + 1) % NumberOfServers;
-                  Servers[currentServer].JobCount[(Servers[currentServer].NumCurrentJobs)]++;
-                  Servers[currentServer].TotalOldJobsArrived++;
-                   loopCount++;
-                   if(Servers[currentServer].NumCurrentJobs < Servers[currentServer].Capacity)
-                   {
-                       numberOfHops[loopCount]++;
-                       FoundServer = true;
-                       CurrentJob.AssignedServerID = Servers[currentServer].ServerID;
-                       serverTime = muDistribution(generator);
-                       CurrentJob.PriorityTime += serverTime;
-                       CurrentJob.ServiceTime = serverTime;
-                       JobQueue.push(CurrentJob);
-                       Servers[currentServer].NumCurrentJobs++;
-                       lastServer = Servers[currentServer].ServerID;
-                   }
-                   else
-                   {
-                       //cout<<"Job "<<CurrentJob.JobID<<" denied by Server "<<Servers[currentServer].ServerID<<endl;
-                       Servers[currentServer].TotalJobsDenied++;
-                   }
-             }
-            }
+            break;
 
-           if(loopCount == NumberOfServers)
-            {
-                DropJobs++;
-            }
-       }
-       else
-       {
-           simulatedClock += CurrentJob.ServiceTime;
-           serviceClock+= CurrentJob.ServiceTime;
-           //cout<<"Job Finished: "<<CurrentJob.JobID<<" with Server "<<Servers[CurrentJob.AssignedServerID].ServerID<<endl;
-           //cout<<"Job Server ID: "<<CurrentJob.AssignedServerID<<endl;
-            //cout<<"Server "<<Servers[CurrentJob.AssignedServerID].ServerID<< " Job Count: "<<Servers[CurrentJob.AssignedServerID].NumCurrentJobs<<endl;
-            Servers[CurrentJob.AssignedServerID].TotalJobsServed++;
-            Servers[CurrentJob.AssignedServerID].NumCurrentJobs--;
+        case OLDJOB:
+                CurrentJob.numberOfServersVisited++;
 
-            /*if(Servers[CurrentJob.AssignedServerID].NumCurrentJobs == 0)
-            {
-               Servers[CurrentJob.AssignedServerID].JobCount[Servers[CurrentJob.AssignedServerID].NumCurrentJobs]++;
-            }*/
-            if(Servers[CurrentJob.AssignedServerID].NumCurrentJobs < 0)
-            {
-                cout<<"ERROR: Negative Job Count..."<<endl;
-            }
-       }
-    }
+                Servers[currentServer].TotalOldJobsArrived++;
 
-    for(i = 0; i <NumberOfServers; i++)
-    {
-        totalJobsServed+= Servers[i].TotalJobsServed;
-    }
-    //cout<<"Number of new jobs: "<<i<<endl;
-    cout<<"\nTotal Simulation Time: "<<simulatedClock<<endl;
-    cout<<"Total Arrival Time:      "<<arrivalClock<<endl;
-    cout<<"Total Service Time:      "<<serviceClock<<endl;
-    cout<<"Average Service Time:    "<<serviceClock/totalJobsServed<<endl;
-    cout<<"Inter Arrival Time:      "<<(arrivalClock/NJobsArrived)<<endl;
-   // cout<<"Service Ratio:           "<<serviceClock/simulatedClock<<endl;
-    cout<<"Number of Jobs Arrived:  "<<NJobsArrived<<endl;
+                if(CurrentJob.numberOfServersVisited > NumberOfServers)
+                {
+                    DropJobs++;
+                }
+                else
+                {
+                    if(Servers[currentServer].NumCurrentJobs == Servers[currentServer].Capacity)
+                    {
 
+                        Servers[currentServer].JobCount[Servers[currentServer].NumCurrentJobs]++;
+                        Servers[currentServer].TotalJobsDenied++;
+                        JobQueue.push(CurrentJob);
 
+                        lastServer = currentServer;
+                        currentServer = (currentServer + 1) % NumberOfServers;
+                        while(Servers[currentServer].NumCurrentJobs == Servers[currentServer].Capacity)
+                        {
+                            currentServer = (currentServer + 1) % NumberOfServers;
+                        }
+                    }
+                    else if(Servers[currentServer].NumCurrentJobs < Servers[currentServer].Capacity)
+                    {
+                        CurrentJob.status = DEPARTURE;
+                        CurrentJob.AssignedServerID = Servers[currentServer].ServerID;
+                        serverTime = muDistribution(generator);
+                        CurrentJob.PriorityTime += serverTime;
+                        CurrentJob.ServiceTime = serverTime;
+                        JobQueue.push(CurrentJob);
+                        Servers[currentServer].NumCurrentJobs++;
+                        numberOfHops[CurrentJob.numberOfServersVisited]++;
+                        Servers[currentServer].JobCount[(Servers[currentServer].NumCurrentJobs)]++;
+                        Servers[currentServer].Jobs.push_back(CurrentJob);
+                        lastServer = currentServer;
+                        lastSuccessful = currentSuccessful;
+                        currentSuccessful = currentServer;
+                        currentServer = (currentServer + 1) % NumberOfServers;
+                        while(Servers[currentServer].NumCurrentJobs == Servers[currentServer].Capacity)
+                        {
+                            currentServer = (currentServer + 1) % NumberOfServers;
+                        }
+                    }
+                }
+            break;
 
-    for(i = 0; i <numPrintServers; i++)
-    {
-        cout<<"\n\nServer "<<Servers[i].ServerID<<endl;
-        cout<<"------------"<<endl;
-        cout<<"Old and New Jobs Served:  "<<Servers[i].TotalJobsServed<<endl;
-        cout<<"Old and New Jobs Denied:  "<<Servers[i].TotalJobsDenied + Servers[i].TotalArrivingJobsDenied<<endl;
-        cout<<"New Arriving Jobs:        "<<Servers[i].TotalArrivingJobs<<endl;
-        cout<<"New Arriving Jobs Served: "<<Servers[i].TotalArrivingJobs-Servers[i].TotalArrivingJobsDenied<<endl;
-        cout<<"New Arriving Jobs Denied: "<<Servers[i].TotalArrivingJobsDenied<<endl;
-        cout<<"Old Arriving Jobs:        "<<Servers[i].TotalOldJobsArrived<<endl;
-        cout<<"Old Arriving Jobs Served: "<<Servers[i].TotalOldJobsArrived-Servers[i].TotalJobsDenied<<endl;
-        cout<<"Old Arriving Jobs Denied: "<<Servers[i].TotalJobsDenied<<endl;
-
-    }
-    //cout<<"\nDrop Rate: "<<(double)DropJobs/NJobsArrived<<endl;
-    cout<<"\nJobs Dropped: "<<DropJobs<<endl;
-    for(i = 0; i < numPrintServers; i++){
-        totalArrivingJobs += Servers[i].TotalArrivingJobs;
-    }
-    //cout<<"\nServers greater than average"<<endl;
-    //cout<<"----------------------------"<<endl;
-
-    int averageArrivingJobs = (double)totalArrivingJobs / NumberOfServers;
-    int serversGreaterThanAvg = 0;
-    int totalJobs = 0;
-    int totalStateFive = 0;
-    double expectedValue = 0;
-        for(i = 0; i < numPrintServers; i++){
-            if(Servers[i].TotalArrivingJobs > averageArrivingJobs){
-                serversGreaterThanAvg++;
-                //cout<<"Server id: "<<i<<endl;
-
-            }
-    }
-    //cout<<"Servers that surpassed avg: "<<(double)serversGreaterThanAvg/NumberOfServers<<endl;
-   // cout<<"Total arriving jobs from all servers: " << totalArrivingJobs<<endl;
-
-
-    for(i = 0; i < numPrintServers; i++)
-    {
-        cout<<"\nServer "<<i<<endl;
-        cout<<"----------"<<endl;
-        totalJobs = 0;
-        expectedValue = 0;
-        for(int j = 0; j < Servers[i].JobCount.size(); j++)
-        {
-            totalJobs += Servers[i].JobCount[j];
-
-            if(j == 5)
-                totalStateFive += Servers[i].JobCount[j];
-        }
-        for(int k = 0; k < Servers[i].JobCount.size(); k++)
-        {
-            cout<<"Server State "<< k<<": "<<Servers[i].JobCount[k]/(double)totalJobs<<endl;
-            expectedValue += ((double)k * ((double)Servers[i].JobCount[k]/totalJobs));
-        }
-
-        cout<<"Total Jobs: "<<totalJobs<<endl;
-
-        cout<<"Expected Number of Jobs "<<expectedValue<<endl;
-
-    }
-
-    totalStateFive = 0;
-    for(i = 0; i < 1; i++)
-    {
-        for(int j = 0; j < Servers[i].JobCount.size(); j++)
-        {
-            if(j == 5)
-                totalStateFive += Servers[i].JobCount[j];
+        default:
+            cout<<"ERROR: Job Status is Undefined....."<<endl;
+            break;
         }
     }
-    //cout<<"Total of State 5: "<<totalStateFive/(double)NJobsArrived<<endl;
+    double maxNum = 0, maxInterval;
 
-    for(i = 0; i < NumberOfServers; i++)
+    for(i = 0; i < Servers[0].Jobs.size(); i++)
     {
-       // cout<<"Number of hops "<<i<<": "<<numberOfHops[i]/(double)NJobsArrived<<endl;
+        if(Servers[0].Jobs[i].ServiceTime > maxNum)
+        {
+            maxNum = Servers[0].Jobs[i].ServiceTime;
+        }
     }
 
-        return 0;
+    maxInterval = maxNum/20;
+
+    for(i = 0; i < Servers[0].Jobs.size(); i++)
+    {
+        int binNumber = Servers[0].Jobs[i].ServiceTime /maxInterval;
+        if(binNumber < 20)
+        {
+            ServiceBins[binNumber]++;
+        }
+
+    }
+    maxNum = 0;
+    for(i = 0; i < Servers[0].Jobs.size(); i++)
+    {
+        if(Servers[0].Jobs[i].ArrivalTime > maxNum)
+        {
+            maxNum = Servers[0].Jobs[i].ArrivalTime;
+        }
+    }
+
+    maxInterval = maxNum/20;
+
+    for(i = 0; i < Servers[0].Jobs.size(); i++)
+    {
+        int binNumber = Servers[0].Jobs[i].ArrivalTime /maxInterval;
+        if(binNumber < 20)
+        {
+            ArrivalBins[binNumber]++;
+        }
+
+    }
+    ofstream ServiceFile, ArrivalFile;
+    ServiceFile.open("ServiceTime.dat");
+    ArrivalFile.open("ArrivalTime.dat");
+    for(i = 0; i < 20; i++)
+    {
+        ServiceFile<<i/2.0<<" "<<ServiceBins[i]<<endl;
+        ArrivalFile<<i/2.0<<" "<<ArrivalBins[i]<<endl;
+
+    }
+    ServiceFile.close();
+    ArrivalFile.close();
+    return 0;
 }
+

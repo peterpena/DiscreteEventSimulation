@@ -11,7 +11,9 @@ class Job
         double ArrivalTime;
         double ServiceTime;
         int JobID;
+        int status;
         int AssignedServerID;
+        int numberOfServersVisited = 0;
 
     protected:
     private:

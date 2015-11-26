@@ -27,10 +27,10 @@ int main()
     int NumberOfServers = 100;
     int numberOfHops[NumberOfServers];
     int NJobsServed[NumberOfServers];
-    int NJobsArrived = 5000000;
+    int NJobsArrived = 1000000;
     int NWarmUpJobs = 100000;
     int numPrintServers = 2;
-    double perServerLoad = 1.5;
+    double perServerLoad = 4;
     double load = NumberOfServers * perServerLoad;
     double simRatio = 0.001;
     double Lambda = simRatio*load;
@@ -90,86 +90,6 @@ int main()
 
         JobQueue.push(NewJob);
     }
-    /*
-    while(warmUpJobsCounter < NWarmUpJobs)
-    {
-        warmUpJobsCounter++;
-
-        Job CurrentJob = JobQueue.top();
-        JobQueue.pop();
-
-        switch(CurrentJob.status)
-        {
-
-        case DEPARTURE:
-            simulatedClock += CurrentJob.ServiceTime;
-            serviceClock+= CurrentJob.ServiceTime;
-            Servers[CurrentJob.AssignedServerID].NumCurrentJobs--;
-
-            if(Servers[CurrentJob.AssignedServerID].NumCurrentJobs < 0)
-            {
-                cout<<"ERROR: Negative Job Count..."<<endl;
-            }
-            break;
-
-        case NEWJOB:
-
-            if(Servers[currentServer].NumCurrentJobs == Servers[currentServer].Capacity)
-            {
-                CurrentJob.status = OLDJOB;
-                JobQueue.push(CurrentJob);
-
-                currentServer = (Servers[currentServer].ServerID + 1) % NumberOfServers;
-
-            }
-            else
-            {
-                CurrentJob.status = DEPARTURE;
-                CurrentJob.AssignedServerID = Servers[currentServer].ServerID;
-                serverTime = muDistribution(generator);
-                CurrentJob.PriorityTime += serverTime;
-                CurrentJob.ServiceTime = serverTime;
-                JobQueue.push(CurrentJob);
-                Servers[currentServer].NumCurrentJobs++;
-                currentServer = (Servers[currentServer].ServerID + 1) % NumberOfServers;
-            }
-            break;
-
-        case OLDJOB:
-
-            numVisitedServers = 0;
-            FoundServer = false;
-            while(!FoundServer && (numVisitedServers < NumberOfServers))
-            {
-                if(Servers[currentServer].NumCurrentJobs == Servers[currentServer].Capacity)
-                {
-                    currentServer = (Servers[currentServer].ServerID + 1) % NumberOfServers;
-                }
-                else if(Servers[currentServer].NumCurrentJobs < Servers[currentServer].Capacity)
-                {
-                    CurrentJob.status = DEPARTURE;
-                    FoundServer = true;
-
-                    CurrentJob.AssignedServerID = Servers[currentServer].ServerID;
-                    serverTime = muDistribution(generator);
-                    CurrentJob.PriorityTime += serverTime;
-                    CurrentJob.ServiceTime = serverTime;
-                    JobQueue.push(CurrentJob);
-                    Servers[currentServer].NumCurrentJobs++;
-                    currentServer = (Servers[currentServer].ServerID + 1) % NumberOfServers;
-
-                }
-                numVisitedServers++;
-            }
-
-            break;
-
-        default:
-            cout<<"ERROR: Job Status is Undefined....."<<endl;
-            break;
-        }
-    }
-    */
 
     while(!JobQueue.empty())
     {

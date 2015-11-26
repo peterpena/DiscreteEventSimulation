@@ -1,6 +1,7 @@
 #ifndef SERVER_H
 #define SERVER_H
 #define NONVALID -1;
+#include "job.h"
 #include <vector>
 
 using namespace std;
@@ -20,6 +21,7 @@ class Server
         int TotalArrivingJobsDenied = 0;
         int TotalArrivingJobs = 0;
         vector<int> JobCount;
+        vector<Job> Jobs;
 
         void initializeJobCount(int JobCountNum);
 };

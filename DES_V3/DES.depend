@@ -17,16 +17,18 @@
 1445374049 source:c:\users\pedro\desktop\smart systems research\discreteeventsimulation\des_v3\server.cpp
 	"server.h"
 
-1446053403 c:\users\pedro\desktop\smart systems research\discreteeventsimulation\des_v3\server.h
+1448046930 c:\users\pedro\desktop\smart systems research\discreteeventsimulation\des_v3\server.h
+	"job.h"
 	<vector>
 
-1447959910 source:c:\users\pedro\desktop\smart systems research\discreteeventsimulation\des_v3\main.cpp
+1448049113 source:c:\users\pedro\desktop\smart systems research\discreteeventsimulation\des_v3\main.cpp
 	<iostream>
 	<queue>
 	"job.h"
 	"server.h"
 	<random>
 	<string>
+	<fstream>
 
-1446151087 c:\users\pedro\desktop\smart systems research\discreteeventsimulation\des_v3\job.h
+1448047275 c:\users\pedro\desktop\smart systems research\discreteeventsimulation\des_v3\job.h
 
