@@ -23,6 +23,8 @@ public:
 int main()
 {
     priority_queue<Job, vector<Job>, TimeComparison> JobQueue;
+    vector<double> ServerJobsArrival;
+    vector<double> ServerJobsService;
     int DropJobs = 0;
     int NumberOfServers = 100;
     int numberOfHops[NumberOfServers];
@@ -50,6 +52,10 @@ int main()
     bool FoundServer = false;
     int numVisitedServers = 0;
     int totalArrivingJobs = 0;
+    double firstServerJobArrival = 0;
+    double currentServerJobArrival = 0;
+    double firstServerJobService = 0;
+    double currentServerJobService = 0;
 
     for(i = 0; i < NumberOfServers; i++)
     {
@@ -103,6 +109,10 @@ int main()
         {
 
         case DEPARTURE:
+                if(Servers[currentServer].ServerID == 0)
+                {
+                    ServerJobsService.push_back(CurrentJob.PriorityTime);
+                }
             simulatedClock += CurrentJob.ServiceTime;
             serviceClock+= CurrentJob.ServiceTime;
             Servers[CurrentJob.AssignedServerID].NumCurrentJobs--;
@@ -132,6 +142,10 @@ int main()
             }
             else
             {
+                if(Servers[currentServer].ServerID == 0)
+                {
+                    ServerJobsArrival.push_back(CurrentJob.PriorityTime);
+                }
                 CurrentJob.status = DEPARTURE;
                 CurrentJob.AssignedServerID = Servers[currentServer].ServerID;
                 serverTime = muDistribution(generator);
@@ -172,6 +186,10 @@ int main()
                     }
                     else if(Servers[currentServer].NumCurrentJobs < Servers[currentServer].Capacity)
                     {
+                        if(Servers[currentServer].ServerID == 0)
+                        {
+                            ServerJobsArrival.push_back(CurrentJob.PriorityTime);
+                        }
                         CurrentJob.status = DEPARTURE;
                         CurrentJob.AssignedServerID = Servers[currentServer].ServerID;
                         serverTime = muDistribution(generator);
@@ -191,9 +209,20 @@ int main()
             break;
         }
     }
+    firstServerJobArrival = ServerJobsArrival.front();
+    currentServerJobArrival = ServerJobsArrival.back();
+    firstServerJobService = ServerJobsService.front();
+    currentServerJobService = ServerJobsService.back();
+
+    cout<<"Arrival Difference: "<<firstServerJobArrival<<", "<<currentServerJobArrival<<endl;
+    cout<<"Service Difference: "<<firstServerJobService<<", "<<currentServerJobService<<endl;
+    cout<<"Arrival Rate: "<<(Servers[0].TotalArrivingJobs + Servers[0].TotalOldJobsArrived)/(currentServerJobArrival-firstServerJobArrival)<<endl;
+    cout<<"Service Rate: "<<Servers[0].TotalJobsServed/(currentServerJobService-firstServerJobService)<<endl;
+
     for(i = 0; i <NumberOfServers; i++)
     {
         totalJobsServed+= Servers[i].TotalJobsServed;
+
     }
     //cout<<"Number of new jobs: "<<i<<endl;
     cout<<"\nTotal Simulation Time: "<<simulatedClock<<endl;
