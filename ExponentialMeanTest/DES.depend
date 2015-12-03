@@ -1,0 +1,51 @@
+# depslib dependency file v1.0
+1446218209 source:c:\users\pedro\desktop\smart cities research\discreteeventsimulation\des\main.cpp
+	<iostream>
+	<queue>
+	"job.h"
+	"server.h"
+	<random>
+
+1446154687 c:\users\pedro\desktop\smart cities research\discreteeventsimulation\des\job.h
+
+1446057003 c:\users\pedro\desktop\smart cities research\discreteeventsimulation\des\server.h
+	<vector>
+
+1445377649 source:c:\users\pedro\desktop\smart cities research\discreteeventsimulation\des\server.cpp
+	"server.h"
+
+1445374049 source:c:\users\pedro\desktop\smart systems research\discreteeventsimulation\des_v3\server.cpp
+	"server.h"
+
+1448046930 c:\users\pedro\desktop\smart systems research\discreteeventsimulation\des_v3\server.h
+	"job.h"
+	<vector>
+
+1448049113 source:c:\users\pedro\desktop\smart systems research\discreteeventsimulation\des_v3\main.cpp
+	<iostream>
+	<queue>
+	"job.h"
+	"server.h"
+	<random>
+	<string>
+	<fstream>
+
+1448047275 c:\users\pedro\desktop\smart systems research\discreteeventsimulation\des_v3\job.h
+
+1445374049 source:c:\users\pedro\desktop\smart systems research\discreteeventsimulation\exponentialmeantest\server.cpp
+	"server.h"
+
+1448046930 c:\users\pedro\desktop\smart systems research\discreteeventsimulation\exponentialmeantest\server.h
+	"job.h"
+	<vector>
+
+1448047275 c:\users\pedro\desktop\smart systems research\discreteeventsimulation\exponentialmeantest\job.h
+
+1449176958 source:c:\users\pedro\desktop\smart systems research\discreteeventsimulation\exponentialmeantest\main.cpp
+	<iostream>
+	<queue>
+	"job.h"
+	"server.h"
+	<random>
+	<string>
+

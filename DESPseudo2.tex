@@ -1,0 +1,110 @@
+\documentclass{article}
+\usepackage{algorithm,algpseudocode,float}
+\usepackage{lipsum}
+
+\makeatletter
+\newenvironment{breakablealgorithm}
+  {% \begin{breakablealgorithm}
+   \begin{center}
+     \refstepcounter{algorithm}% New algorithm
+     \hrule height.8pt depth0pt \kern2pt% \@fs@pre for \@fs@ruled
+     \renewcommand{\caption}[2][\relax]{% Make a new \caption
+       {\raggedright\textbf{\ALG@name~\thealgorithm} ##2\par}%
+       \ifx\relax##1\relax % #1 is \relax
+         \addcontentsline{loa}{algorithm}{\protect\numberline{\thealgorithm}##2}%
+       \else % #1 is not \relax
+         \addcontentsline{loa}{algorithm}{\protect\numberline{\thealgorithm}##1}%
+       \fi
+       \kern2pt\hrule\kern2pt
+     }
+  }{% \end{breakablealgorithm}
+     \kern2pt\hrule\relax% \@fs@post for \@fs@ruled
+   \end{center}
+  }
+\makeatother
+
+\begin{document}
+\algnewcommand\algorithmicswitch{\textbf{switch}}
+\algnewcommand\algorithmiccase{\textbf{case}}
+\algnewcommand\algorithmicassert{\texttt{assert}}
+\algnewcommand\Assert[1]{\State \algorithmicassert(#1)}%
+% New "environments"
+\algdef{SE}[SWITCH]{Switch}{EndSwitch}[1]{\algorithmicswitch\ #1\ \algorithmicdo}{\algorithmicend\ \algorithmicswitch}%
+\algdef{SE}[CASE]{Case}{EndCase}[1]{\algorithmiccase\ #1}{\algorithmicend\ \algorithmiccase}%
+\algtext*{EndSwitch}%
+\algtext*{EndCase}%
+\listofalgorithms
+
+\begin{breakablealgorithm}
+  \caption{Discrete Event Simulation}
+  \begin{algorithmic}[1]
+    \Procedure{DES}{$Number of Jobs, Load $}
+      \State $\lambda\gets Ratio \cdot Load$
+      \State $\mu\gets Ratio$
+      \State $clock \gets 0$
+      \For{\texttt{$i = 0$ to $Number of Jobs$}}
+        \State $ArrivalTime \gets exponential(\lambda) + clock$ \Comment Generate Random Num
+        \State $clock \gets ArrivalTime$
+        \State $job.PriorityTime \gets ArrivalTime$
+        \State $job.status \gets Newjob$
+        \State Add $job$ to $queue$
+      \EndFor
+      \While{$queue$ is not $empty$}
+      	\State Remove $job$ from $queue$
+      	  \Switch{$job.status$}
+          	\Case{$Departure$}
+          		\State $Decrement$ number of $jobs$ in $server$
+          		\State $Increment$ number of $jobs$ $served$ by $server$
+          		\State $Increment$ number of $jobs$ in current $server$ $state$
+    		\EndCase
+    		\Case{$Newjob$}
+     		 	\State $Increment$ number of $new$ $jobs$ arrived
+     		 	\If{$current$ $jobs$ in $server$ $equals$ $server$ $capacity$}
+     		 	\State $job.status \gets Oldjob$
+     		 	\State Add $job$ to $queue$
+     		 	\State $Increment$ number of $jobs$ in current $server$ $state$
+     		 	\State $Increment$ number of $jobs$ $denied$ by $server$
+     		 	\State $currentServer \gets nextServer$ \Comment Round Robin
+     		 	\Else
+     		 	\State $job.status \gets Departure$
+     		 	\State $job.id \gets server.id$
+     		 	\State $ServerTime \gets exponential(\mu)$ \Comment Generate Random Num
+     		 	\State $job.PriorityTime \gets job.PriorityTime + ServerTime$
+     		 	\State Add $job$ to $queue$
+				\State $Increment$ number of $jobs$ in $server$
+				\State $Increment$ number of $jobs$ in current $server$ $state$
+     		 	\State $currentServer \gets nextServer$ \Comment Round Robin
+     		 	\EndIf
+    		\EndCase
+    		\Case{$Oldjob$}
+     		 	\State $Increment$ number of $servers$ visited by $job$
+     		 	\State $Increment$ number of $old$ $jobs$ $arrived$ at current $server$
+     		 	\If{number of $servers$ visited by $job$ $>$ number of $servers$}
+     		 	\State $Increment$ number of $dropped$ $ jobs$
+     		 	\Else
+     		 		\If{$current$ $jobs$ in $server$ 		$equals$ $server$ $capacity$}
+     		 			\State Add $job$ to $queue$
+     		 			\State $Increment$ number of 			$jobs$ in current $server$ $state$
+     		 			\State $Increment$ number of $jobs$ $denied$ by $server$
+     		 			\State $currentServer \gets nextServer$ \Comment Round Robin
+     		 		\Else
+     		 			\State $job.status \gets Departure$
+     		 			\State $job.id \gets server.id$
+     		 			\State $ServerTime \gets exponential(\mu)$ \Comment Generate Random Num
+     		 			\State $job.PriorityTime \gets job.PriorityTime + ServerTime$
+     		 			\State Add $job$ to $queue$
+						\State $Increment$ number of $jobs$ in $server$
+						\State $Increment$ number of $jobs$ in current $server$ $state$
+     		 			\State $currentServer \gets nextServer$ \Comment Round Robin 
+     		 			\EndIf    		 	
+     		 	\EndIf
+    		\EndCase
+  		\EndSwitch
+      \EndWhile\label{euclidendwhile}
+      \State $expected$ $value$ $=$ $\eta\sum_{n=0}^{N} n\cdot S_{i}$\Comment{N = Number of States}
+      \State \textbf{return} $expected$ $value$
+    \EndProcedure
+  \end{algorithmic}
+\end{breakablealgorithm}
+
+\end{document}
