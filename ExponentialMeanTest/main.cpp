@@ -65,8 +65,8 @@ int main()
         numberOfHops[i] = 0;
     }
 
-    default_random_engine generator(0);
-    exponential_distribution<double> lamdaDistribution(1/Lambda);
+    default_random_engine generator(100);
+    exponential_distribution<double> lamdaDistribution(Lambda);
     exponential_distribution<double> muDistribution(1/Mu);
 
     cout<<"Number of Servers: "<<NumberOfServers<<endl;
@@ -74,7 +74,7 @@ int main()
     cout<<"Mu: "<<Mu<<endl;
     cout<<"Lambda: "<<Lambda<<endl;
     cout<<"Per Server Load: "<<perServerLoad<<endl;
-    cout<<"Expected Exponential Mean with parameter Lamda: "<<1/Lambda<<endl;
+    cout<<"Expected Exponential Mean with parameter Lamda: "<<Lambda<<endl;
     cout<<"Expected Exponential Mean with parameter Mu: "<<1/Mu<<endl;
 
     //intial job
@@ -96,12 +96,14 @@ int main()
         NewJob.status = NEWJOB;
         NewJob.ArrivalTime = arrivalTime - pastTime;
         average+=arrivalTime;
+        //cout<<"Inter Arrival Time: "<<arrivalTime<<endl;
 
         JobQueue.push(NewJob);
     }
 
     average /= NJobsArrived;
-    cout<<"Arrival Mean: "<< 1 / average<<endl;
+    cout<<"Inter Arrival Average: "<<average<<endl;
+    cout<<"Inter Arrival Mean: "<< 1 / average<<endl;
     average = 0;
 
     //Fill Initial Queue
@@ -109,15 +111,18 @@ int main()
     {
         double pastTime = clock;
         double arrivalTime = muDistribution(generator);
+        //cout<<"Service Time: "<<arrivalTime<<endl;
         clock = arrivalTime;
         Job NewJob(NEWJOB, arrivalTime, i + 1);
         NewJob.JobID = i+1;
         NewJob.status = NEWJOB;
         NewJob.ArrivalTime = arrivalTime - pastTime;
         average+=arrivalTime;
+        //cout<<"Service Time: "<<arrivalTime<<endl;
     }
 
     average /= NJobsArrived;
+    cout<<"Average Service Time: "<<average<<endl;
     cout<<"Service Mean: "<< 1 / average<<endl;
 
     /*

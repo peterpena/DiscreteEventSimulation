@@ -32,7 +32,7 @@ int main()
     int numPrintServers = 2;
     double perServerLoad = 4;
     double load = NumberOfServers * perServerLoad;
-    double simRatio = 0.001;
+    double simRatio = 1;
     double Lambda = simRatio*load;
     double Mu = simRatio;
     int MaxServerCapacity = 5;
@@ -62,7 +62,7 @@ int main()
 
     default_random_engine generator(0);
     exponential_distribution<double> lamdaDistribution(Lambda);
-    exponential_distribution<double> muDistribution(Mu);
+    exponential_distribution<double> muDistribution(1/Mu);
 
     cout<<"Number of Servers: "<<NumberOfServers<<endl;
     cout<<"Server Capacity: "<<MaxServerCapacity<<endl;
@@ -96,6 +96,8 @@ int main()
 
         Job CurrentJob = JobQueue.top();
         JobQueue.pop();
+
+        //cout<<"Status: "<<CurrentJob.status<<endl;
 
         switch(CurrentJob.status)
         {
@@ -140,6 +142,10 @@ int main()
                 numberOfHops[0]++;
                 Servers[currentServer].JobCount[(Servers[currentServer].NumCurrentJobs)]++;
                 currentServer = (currentServer+1) % NumberOfServers;
+
+                //cout<<"Arrival Time: "<<CurrentJob.ArrivalTime<<endl;
+                //cout<<"Service Time: "<<CurrentJob.ServiceTime<<endl;
+                //cout<<"Priority Time: "<<CurrentJob.PriorityTime<<endl;
             }
             break;
 
